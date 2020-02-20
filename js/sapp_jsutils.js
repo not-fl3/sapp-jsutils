@@ -9,6 +9,17 @@ register_plugin = function (importObject) {
         return js_object(string);
     }
 
+    importObject.env.js_create_object = function () {
+        var object = {};
+        return js_object(object);
+    }
+
+    importObject.env.js_set_field_f32 = function (js_object, buf, max_len, data) {
+        var field = UTF8ToString(buf, max_len);
+
+        js_objects[js_object][field] = data;
+    }
+
     importObject.env.js_unwrap_to_str = function (js_object, buf, max_len) {
         var str = js_objects[js_object];
         var utf8array = toUTF8Array(str);
@@ -91,7 +102,20 @@ function js_object(obj) {
     return id;
 }
 
-/// Get the real object from JsObject returned from rust
-function from_js_object(id) {
+/// Consueme the JsObject returned from rust
+/// Rust gives us ownership on the object. This method consume ownership from rust to normal JS garbage collector.
+function consume_js_object(id) {
+    var object = js_objects[id];
+    // in JS delete operator does not delete (JS!), the intention here is to remove the value from hashmap, like "js_objects.remove(id)"
+    delete js_objects[id];
+    return object;
+}
+
+/// Get the real object from JsObject returned from rust 
+/// Acts like borrowing in rust, but without any checks
+/// Be carefull, for most use cases "consume_js_object" is usually better option
+function get_js_object(id) {
     return js_objects[id];
 }
+
+

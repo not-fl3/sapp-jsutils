@@ -23,8 +23,13 @@ impl Drop for JsObject {
 
 /// Private unsafe JS api
 extern "C" {
-    /// Allocate new js object with data proveden. Returned JsObject is safe to use and will follow usual JsObject ownership rules
+    /// Allocate new js object with data proveden. 
+    /// Returned JsObject is safe to use and will follow usual JsObject ownership rules
     fn js_create_string(buf: *const u8, max_len: u32) -> JsObject;
+
+    /// Allocate new empty js object. Like "var obj = {};".
+    /// Returned JsObject is safe to use and will follow usual JsObject ownership rules
+    fn js_create_object() -> JsObject;
 
     /// This will not delete or delallocate JS object, but will stop saving it from JS garbage collector
     fn js_free_object(js_object: JsObjectWeak);
@@ -38,12 +43,21 @@ extern "C" {
     
     /// Get .field or ["field"] of given JsObject
     fn js_field(js_object: JsObjectWeak, buf: *mut u8, len: u32) -> JsObject;
+
+    /// Set .field or ["field"] to given f32, like "object.field = data";
+    fn js_set_field_f32(js_object: JsObjectWeak, buf: *mut u8, len: u32, data: f32);
+
 }
 
 impl JsObject {
     /// Allocate new javascript object with string type 
     pub fn string(string: &str) -> JsObject {
         unsafe { js_create_string(string.as_ptr() as _, string.len() as _) }
+    }
+
+    /// Allocate new javascript object with object type. Like "var object = {}" in JS.
+    pub fn object() -> JsObject {
+        unsafe { js_create_object() }
     }
 
     /// Read js object to given string
@@ -64,4 +78,11 @@ impl JsObject {
     pub fn field(&self, field: &str) -> JsObject {
         unsafe { js_field(self.weak(), field.as_ptr() as _, field.len() as _) }
     }
+
+    /// Set .field or ["field"] to given f32, like "object.field = data";
+    /// Will panic if self is not an object or map
+    pub fn set_field_f32(&self, field: &str, data: f32) {
+        unsafe { js_set_field_f32(self.weak(), field.as_ptr() as _, field.len() as _, data) }
+    }
+
 }
