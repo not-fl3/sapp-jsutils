@@ -1,31 +1,36 @@
 /// Pointer type for Js allocated object
 /// Consider this as a Box, but pointing into JS memory
+/// -1 is nil
 #[repr(transparent)]
-pub struct JsObject(u32);
+pub struct JsObject(i32);
 
 impl JsObject {
     /// Get a weak reference to js memory
-    /// No guarantees against js garbage collector 
+    /// No guarantees against js garbage collector
     pub fn weak(&self) -> JsObjectWeak {
         JsObjectWeak(self.0)
     }
 }
 #[derive(Clone, Copy)]
 #[repr(transparent)]
-pub struct JsObjectWeak(u32);
-
+pub struct JsObjectWeak(i32);
 
 impl Drop for JsObject {
     fn drop(&mut self) {
-        unsafe { js_free_object(self.weak()); }
+        unsafe {
+            js_free_object(self.weak());
+        }
     }
 }
 
 /// Private unsafe JS api
 extern "C" {
-    /// Allocate new js object with data proveden. 
+    /// Allocate new js object with data providen.
     /// Returned JsObject is safe to use and will follow usual JsObject ownership rules
     fn js_create_string(buf: *const u8, max_len: u32) -> JsObject;
+
+    /// Same as create_string, on both api and implementation, however will not perform UTF8 conversion on the JS side.
+    fn js_create_buffer(buf: *const u8, max_len: u32) -> JsObject;
 
     /// Allocate new empty js object. Like "var obj = {};".
     /// Returned JsObject is safe to use and will follow usual JsObject ownership rules
@@ -37,10 +42,14 @@ extern "C" {
     /// Will read object byte by byte into rust memory assuming that object is an array
     fn js_unwrap_to_str(js_object: JsObjectWeak, buf: *mut u8, max_len: u32);
 
+    /// Will read object byte by byte into rust memory assuming that object is an array
+    fn js_unwrap_to_buf(js_object: JsObjectWeak, buf: *mut u8, max_len: u32);
+
     // Will panic if js_object is not a string
     // Will calculate the length of string bytes representation
     fn js_string_length(js_object: JsObjectWeak) -> u32;
-    
+    fn js_buf_length(js_object: JsObjectWeak) -> u32;
+
     /// Get .field or ["field"] of given JsObject
     fn js_field(js_object: JsObjectWeak, buf: *mut u8, len: u32) -> JsObject;
 
@@ -50,9 +59,14 @@ extern "C" {
 }
 
 impl JsObject {
-    /// Allocate new javascript object with string type 
+    /// Allocate new javascript object with string type
     pub fn string(string: &str) -> JsObject {
         unsafe { js_create_string(string.as_ptr() as _, string.len() as _) }
+    }
+
+    /// Allocate new javascript object with Uint8Array type
+    pub fn buffer(data: &[u8]) -> JsObject {
+        unsafe { js_create_buffer(data.as_ptr() as _, data.len() as _) }
     }
 
     /// Allocate new javascript object with object type. Like "var object = {}" in JS.
@@ -60,9 +74,9 @@ impl JsObject {
         unsafe { js_create_object() }
     }
 
-    /// Read js object to given string
-    /// Will not allocate memory is string is large enough, will use "String::reserve" otherwise
+    /// Read JS object content to a given string
     /// Will panic if object is not a string
+    /// Will not allocate memory if string is large enough, will use "String::reserve" otherwise
     pub fn to_string(&self, buf: &mut String) {
         let len = unsafe { js_string_length(self.weak()) };
 
@@ -71,6 +85,15 @@ impl JsObject {
         }
         unsafe { buf.as_mut_vec().set_len(len as usize) };
         unsafe { js_unwrap_to_str(self.weak(), buf.as_mut_vec().as_mut_ptr(), len as u32) };
+    }
+
+    /// Read JS object content to a given bytes buffer
+    /// Will panic if object is not a buffer
+    /// Will use .resize() on "buf", so if "buf" is large enough - no memory is going to be allocated here
+    pub fn to_byte_buffer(&self, buf: &mut Vec<u8>) {
+        let len = unsafe { js_buf_length(self.weak()) };
+        buf.resize(len as usize, 0u8);
+        unsafe { js_unwrap_to_buf(self.weak(), buf.as_mut_ptr(), len as u32) };
     }
 
     /// Get a new JsObject from this object .field
@@ -85,4 +108,12 @@ impl JsObject {
         unsafe { js_set_field_f32(self.weak(), field.as_ptr() as _, field.len() as _, data) }
     }
 
+    /// JS function returning JsObject may return -1 instead.
+    /// Those JsObject are considering nil and if function may do this JsObjects
+    /// should be checked for nil.
+    /// Unfortunately this is not typecheked by rust complier at all,
+    /// so any "f() -> JsObject" function may return nil
+    pub fn is_nil(&self) -> bool {
+        self.0 == -1
+    }
 }

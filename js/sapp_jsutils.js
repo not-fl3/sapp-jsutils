@@ -9,6 +9,14 @@ register_plugin = function (importObject) {
         return js_object(string);
     }
 
+    // Copy given bytes into newly allocated Uint8Array
+    importObject.env.js_create_buffer = function (buf, max_len) {
+        var src = new Uint8Array(wasm_memory.buffer, buf, max_len);
+        var new_buffer = new Uint8Array(new ArrayBuffer(src.byteLength));
+        new_buffer.set(new Uint8Array(src));
+        return js_object(new_buffer);
+    }
+
     importObject.env.js_create_object = function () {
         var object = {};
         return js_object(object);
@@ -30,11 +38,27 @@ register_plugin = function (importObject) {
         }
     }
 
+    importObject.env.js_unwrap_to_buf = function (js_object, buf, max_len) {
+        var src = js_objects[js_object];
+        var length = src.length;
+        var dest = new Uint8Array(wasm_memory.buffer, buf, max_len); 
+        for (var i = 0; i < length; i++) {
+            dest[i] = src[i];
+        }
+        console.log(max_len);
+    }
+
     // measure length of the string. This function allocates because there is no way
     // go get string byte length in JS 
     importObject.env.js_string_length = function (js_object) {
         var str = js_objects[js_object];
         return toUTF8Array(str).length;
+    }
+
+    // similar to .length call on Uint8Array in javascript.
+    importObject.env.js_buf_length = function (js_object) {
+        var buf = js_objects[js_object];
+        return buf.length;
     }
 
     importObject.env.js_free_object = function (js_object) {
@@ -102,7 +126,7 @@ function js_object(obj) {
     return id;
 }
 
-/// Consueme the JsObject returned from rust
+/// Consume the JsObject returned from rust
 /// Rust gives us ownership on the object. This method consume ownership from rust to normal JS garbage collector.
 function consume_js_object(id) {
     var object = js_objects[id];
