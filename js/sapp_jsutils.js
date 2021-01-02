@@ -45,7 +45,6 @@ register_plugin = function (importObject) {
         for (var i = 0; i < length; i++) {
             dest[i] = src[i];
         }
-        console.log(max_len);
     }
 
     // measure length of the string. This function allocates because there is no way
@@ -80,7 +79,7 @@ register_plugin = function (importObject) {
         return id;
     }
 }
-miniquad_add_plugin({ register_plugin, version: "0.1.2", name: "sapp_jsutils" });
+miniquad_add_plugin({ register_plugin, version: "0.1.3", name: "sapp_jsutils" });
 
 // Its like https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder, 
 // but works on more browsers
