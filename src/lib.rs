@@ -1,3 +1,12 @@
+#[no_mangle]
+pub extern "C" fn sapp_jsutils_crate_version() -> u32 {
+    let major = dbg!(env!("CARGO_PKG_VERSION_MAJOR").parse::<u32>().unwrap());
+    let minor = env!("CARGO_PKG_VERSION_MINOR").parse::<u32>().unwrap();
+    let patch = dbg!(env!("CARGO_PKG_VERSION_PATCH").parse::<u32>().unwrap());
+
+    (major << 24) + (minor << 16) + patch
+}
+
 /// Pointer type for Js allocated object
 /// Consider this as a Box, but pointing into JS memory
 /// -1 is nil
@@ -11,6 +20,7 @@ impl JsObject {
         JsObjectWeak(self.0)
     }
 }
+
 #[derive(Clone, Copy)]
 #[repr(transparent)]
 pub struct JsObjectWeak(i32);
