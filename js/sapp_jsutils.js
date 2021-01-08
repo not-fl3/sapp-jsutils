@@ -64,6 +64,18 @@ register_plugin = function (importObject) {
         delete js_objects[js_object];
     }
 
+    importObject.env.js_have_field = function (js_object, buf, length) {
+        var field_name = UTF8ToString(buf, length);
+
+        return js_objects[js_object][field_name] == undefined;
+    }
+
+    importObject.env.js_field_num = function (js_object, buf, length) {
+        var field_name = UTF8ToString(buf, length);
+
+        return js_objects[js_object][field_name];
+    }
+
     importObject.env.js_field = function (js_object, buf, length) {
         // UTF8ToString is from gl.js wich should be in the scope now
         var field_name = UTF8ToString(buf, length);
@@ -79,7 +91,7 @@ register_plugin = function (importObject) {
         return id;
     }
 }
-miniquad_add_plugin({ register_plugin, version: "0.1.3", name: "sapp_jsutils" });
+miniquad_add_plugin({ register_plugin, version: "0.1.4", name: "sapp_jsutils" });
 
 // Its like https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder, 
 // but works on more browsers

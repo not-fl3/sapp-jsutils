@@ -60,8 +60,14 @@ extern "C" {
     fn js_string_length(js_object: JsObjectWeak) -> u32;
     fn js_buf_length(js_object: JsObjectWeak) -> u32;
 
+    /// .field or ["field"] == undefined
+    fn js_have_field(js_object: JsObjectWeak, buf: *mut u8, len: u32) -> bool;
+
     /// Get .field or ["field"] of given JsObject
     fn js_field(js_object: JsObjectWeak, buf: *mut u8, len: u32) -> JsObject;
+
+    /// Get a numerical value of .field or ["field"] of given JsObject
+    fn js_field_num(js_object: JsObjectWeak, buf: *mut u8, len: u32) -> f32;
 
     /// Set .field or ["field"] to given f32, like "object.field = data";
     fn js_set_field_f32(js_object: JsObjectWeak, buf: *mut u8, len: u32, data: f32);
@@ -110,6 +116,23 @@ impl JsObject {
     /// Will panic if self is not an object or map
     pub fn field(&self, field: &str) -> JsObject {
         unsafe { js_field(self.weak(), field.as_ptr() as _, field.len() as _) }
+    }
+
+    /// Get a value from this object .field
+    /// Will panic if self is not an object or map
+    pub fn field_u32(&self, field: &str) -> u32 {
+        unsafe { js_field_num(self.weak(), field.as_ptr() as _, field.len() as _) as u32 } 
+    }
+
+    /// .field == undefined
+    pub fn have_field(&self, field: &str) -> bool {
+        unsafe { js_have_field(self.weak(), field.as_ptr() as _, field.len() as _) } 
+    }
+
+    /// Get a value from this object .field
+    /// Will panic if self is not an object or map
+    pub fn field_f32(&self, field: &str) -> f32 {
+        unsafe { js_field_num(self.weak(), field.as_ptr() as _, field.len() as _) } 
     }
 
     /// Set .field or ["field"] to given f32, like "object.field = data";
