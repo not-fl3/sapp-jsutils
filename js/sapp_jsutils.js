@@ -74,7 +74,7 @@ register_plugin = function (importObject) {
     importObject.env.js_have_field = function (js_object, buf, length) {
         var field_name = UTF8ToString(buf, length);
 
-        return js_objects[js_object][field_name] == undefined;
+        return js_objects[js_object][field_name] !== undefined;
     }
 
     importObject.env.js_field_num = function (js_object, buf, length) {
