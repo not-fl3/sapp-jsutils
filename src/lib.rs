@@ -177,12 +177,16 @@ impl JsObject {
         }
     }
 
-    /// JS function returning JsObject may return -1 instead.
-    /// Those JsObject are considering nil and if function may do this JsObjects
-    /// should be checked for nil.
-    /// Unfortunately this is not typecheked by rust complier at all,
-    /// so any "f() -> JsObject" function may return nil
+    /// Checks whether the JsObject handle is actually null
     pub fn is_nil(&self) -> bool {
-        self.0 == -1
+        self.0 == Self::NULL.0
     }
+
+    /// Checks whether the JsObject handle is undefined
+    pub fn is_undefined(&self) -> bool {
+        self.0 == Self::UNDEFINED.0
+    }
+
+    pub const NULL: Self = Self(-1);
+    pub const UNDEFINED: Self = Self(-2);
 }

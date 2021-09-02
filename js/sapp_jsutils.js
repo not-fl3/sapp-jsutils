@@ -1,6 +1,8 @@
 var ctx = null;
 
 js_objects = {}
+js_objects[-1] = null;
+js_objects[-2] = undefined;
 unique_js_id = 0
 
 register_plugin = function (importObject) {
@@ -144,6 +146,12 @@ function toUTF8Array(str) {
 // And let Rust keep ownership of this reference
 // There is no guarantees on JS side of this reference uniqueness, its good idea to use this only on rust functions arguments
 function js_object(obj) {
+    if (obj == undefined) {
+        return -2;
+    }
+    if (obj === null) {
+        return -1;
+    }
     var id = unique_js_id;
 
     js_objects[id] = obj;
