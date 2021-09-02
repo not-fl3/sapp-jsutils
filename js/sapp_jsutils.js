@@ -102,12 +102,7 @@ register_plugin = function (importObject) {
         // apparently .field and ["field"] is the same thing in js
         var field = js_objects[js_object][field_name];
 
-        var id = unique_js_id
-        js_objects[id] = field
-
-        unique_js_id += 1;
-
-        return id;
+        return js_object(field);
     }
 }
 miniquad_add_plugin({ register_plugin, version: "0.1.5", name: "sapp_jsutils" });
