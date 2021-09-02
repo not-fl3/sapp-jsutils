@@ -67,7 +67,10 @@ extern "C" {
     fn js_field(js_object: JsObjectWeak, buf: *mut u8, len: u32) -> JsObject;
 
     /// Get a numerical value of .field or ["field"] of given JsObject
-    fn js_field_num(js_object: JsObjectWeak, buf: *mut u8, len: u32) -> f32;
+    fn js_field_f32(js_object: JsObjectWeak, buf: *mut u8, len: u32) -> f32;
+
+    /// Get a u32 value of .field or ["field"] of given JsObject
+    fn js_field_u32(js_object: JsObjectWeak, buf: *mut u8, len: u32) -> u32;
 
     /// Set .field or ["field"] to given string, like "object.field = "data"";
     fn js_set_field_string(
@@ -80,6 +83,9 @@ extern "C" {
 
     /// Set .field or ["field"] to given f32, like "object.field = data";
     fn js_set_field_f32(js_object: JsObjectWeak, buf: *mut u8, len: u32, data: f32);
+
+    /// Set .field or ["field"] to given u32, like "object.field = data";
+    fn js_set_field_u32(js_object: JsObjectWeak, buf: *mut u8, len: u32, data: u32);
 
 }
 
@@ -130,7 +136,7 @@ impl JsObject {
     /// Get a value from this object .field
     /// Will panic if self is not an object or map
     pub fn field_u32(&self, field: &str) -> u32 {
-        unsafe { js_field_num(self.weak(), field.as_ptr() as _, field.len() as _) as u32 }
+        unsafe { js_field_u32(self.weak(), field.as_ptr() as _, field.len() as _) }
     }
 
     /// .field == undefined
@@ -141,13 +147,19 @@ impl JsObject {
     /// Get a value from this object .field
     /// Will panic if self is not an object or map
     pub fn field_f32(&self, field: &str) -> f32 {
-        unsafe { js_field_num(self.weak(), field.as_ptr() as _, field.len() as _) }
+        unsafe { js_field_f32(self.weak(), field.as_ptr() as _, field.len() as _) }
     }
 
     /// Set .field or ["field"] to given f32, like "object.field = data";
     /// Will panic if self is not an object or map
     pub fn set_field_f32(&self, field: &str, data: f32) {
         unsafe { js_set_field_f32(self.weak(), field.as_ptr() as _, field.len() as _, data) }
+    }
+
+    /// Set .field or ["field"] to given u32, like "object.field = data";
+    /// Will panic if self is not an object or map
+    pub fn set_field_u32(&self, field: &str, data: u32) {
+        unsafe { js_set_field_u32(self.weak(), field.as_ptr() as _, field.len() as _, data) }
     }
 
     /// Set .field or ["field"] to given string, like "object.field = data";

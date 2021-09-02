@@ -28,6 +28,12 @@ register_plugin = function (importObject) {
         js_objects[js_object][field] = data;
     }
 
+    importObject.env.js_set_field_u32 = function (js_object, buf, max_len, data) {
+        var field = UTF8ToString(buf, max_len);
+
+        js_objects[js_object][field] = data;
+    }
+
     importObject.env.js_set_field_string = function (js_object, buf, max_len, data_buf, data_len) {
         var field = UTF8ToString(buf, max_len);
         var data = UTF8ToString(data_buf, data_len);
@@ -77,7 +83,13 @@ register_plugin = function (importObject) {
         return js_objects[js_object][field_name] !== undefined;
     }
 
-    importObject.env.js_field_num = function (js_object, buf, length) {
+    importObject.env.js_field_f32 = function (js_object, buf, length) {
+        var field_name = UTF8ToString(buf, length);
+
+        return js_objects[js_object][field_name];
+    }
+
+    importObject.env.js_field_u32 = function (js_object, buf, length) {
         var field_name = UTF8ToString(buf, length);
 
         return js_objects[js_object][field_name];
