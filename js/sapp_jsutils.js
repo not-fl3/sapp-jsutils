@@ -24,27 +24,27 @@ register_plugin = function (importObject) {
         return js_object(object);
     }
 
-    importObject.env.js_set_field_f32 = function (js_object, buf, max_len, data) {
+    importObject.env.js_set_field_f32 = function (obj_id, buf, max_len, data) {
         var field = UTF8ToString(buf, max_len);
 
-        js_objects[js_object][field] = data;
+        js_objects[obj_id][field] = data;
     }
 
-    importObject.env.js_set_field_u32 = function (js_object, buf, max_len, data) {
+    importObject.env.js_set_field_u32 = function (obj_id, buf, max_len, data) {
         var field = UTF8ToString(buf, max_len);
 
-        js_objects[js_object][field] = data;
+        js_objects[obj_id][field] = data;
     }
 
-    importObject.env.js_set_field_string = function (js_object, buf, max_len, data_buf, data_len) {
+    importObject.env.js_set_field_string = function (obj_id, buf, max_len, data_buf, data_len) {
         var field = UTF8ToString(buf, max_len);
         var data = UTF8ToString(data_buf, data_len);
 
-        js_objects[js_object][field] = data;
+        js_objects[obj_id][field] = data;
     }
 
-    importObject.env.js_unwrap_to_str = function (js_object, buf, max_len) {
-        var str = js_objects[js_object];
+    importObject.env.js_unwrap_to_str = function (obj_id, buf, max_len) {
+        var str = js_objects[obj_id];
         var utf8array = toUTF8Array(str);
         var length = utf8array.length;
         var dest = new Uint8Array(wasm_memory.buffer, buf, max_len); // with max_len in case of buffer overflow we will panic (I BELIEVE) in js, no UB in rust
@@ -53,8 +53,8 @@ register_plugin = function (importObject) {
         }
     }
 
-    importObject.env.js_unwrap_to_buf = function (js_object, buf, max_len) {
-        var src = js_objects[js_object];
+    importObject.env.js_unwrap_to_buf = function (obj_id, buf, max_len) {
+        var src = js_objects[obj_id];
         var length = src.length;
         var dest = new Uint8Array(wasm_memory.buffer, buf, max_len); 
         for (var i = 0; i < length; i++) {
@@ -64,45 +64,45 @@ register_plugin = function (importObject) {
 
     // measure length of the string. This function allocates because there is no way
     // go get string byte length in JS 
-    importObject.env.js_string_length = function (js_object) {
-        var str = js_objects[js_object];
+    importObject.env.js_string_length = function (obj_id) {
+        var str = js_objects[obj_id];
         return toUTF8Array(str).length;
     }
 
     // similar to .length call on Uint8Array in javascript.
-    importObject.env.js_buf_length = function (js_object) {
-        var buf = js_objects[js_object];
+    importObject.env.js_buf_length = function (obj_id) {
+        var buf = js_objects[obj_id];
         return buf.length;
     }
 
-    importObject.env.js_free_object = function (js_object) {
-        delete js_objects[js_object];
+    importObject.env.js_free_object = function (obj_id) {
+        delete js_objects[obj_id];
     }
 
-    importObject.env.js_have_field = function (js_object, buf, length) {
+    importObject.env.js_have_field = function (obj_id, buf, length) {
         var field_name = UTF8ToString(buf, length);
 
-        return js_objects[js_object][field_name] !== undefined;
+        return js_objects[obj_id][field_name] !== undefined;
     }
 
-    importObject.env.js_field_f32 = function (js_object, buf, length) {
+    importObject.env.js_field_f32 = function (obj_id, buf, length) {
         var field_name = UTF8ToString(buf, length);
 
-        return js_objects[js_object][field_name];
+        return js_objects[obj_id][field_name];
     }
 
-    importObject.env.js_field_u32 = function (js_object, buf, length) {
+    importObject.env.js_field_u32 = function (obj_id, buf, length) {
         var field_name = UTF8ToString(buf, length);
 
-        return js_objects[js_object][field_name];
+        return js_objects[obj_id][field_name];
     }
 
-    importObject.env.js_field = function (js_object, buf, length) {
+    importObject.env.js_field = function (obj_id, buf, length) {
         // UTF8ToString is from gl.js wich should be in the scope now
         var field_name = UTF8ToString(buf, length);
 
         // apparently .field and ["field"] is the same thing in js
-        var field = js_objects[js_object][field_name];
+        var field = js_objects[obj_id][field_name];
 
         return js_object(field);
     }
