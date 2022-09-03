@@ -33,7 +33,7 @@ impl Drop for JsObject {
     }
 }
 
-/// Private unsafe JS api
+// Private unsafe JS api
 extern "C" {
     /// Allocate new js object with data providen.
     /// Returned JsObject is safe to use and will follow usual JsObject ownership rules

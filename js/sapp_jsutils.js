@@ -1,9 +1,11 @@
+"use strict";
+
 var ctx = null;
 
-js_objects = {}
+var js_objects = {};
 js_objects[-1] = null;
 js_objects[-2] = undefined;
-unique_js_id = 0
+var unique_js_id = 0;
 
 register_plugin = function (importObject) {
     importObject.env.js_create_string = function (buf, max_len) {
