@@ -7,7 +7,7 @@ js_objects[-1] = null;
 js_objects[-2] = undefined;
 var unique_js_id = 0;
 
-register_plugin = function (importObject) {
+function register_plugin(importObject) {
     importObject.env.js_create_string = function (buf, max_len) {
         var string = UTF8ToString(buf, max_len);
         return js_object(string);
